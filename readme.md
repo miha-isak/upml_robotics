@@ -13,11 +13,16 @@
 - Makeblock rubber wheels;
 - Plexiglass.
 
-![Markdown Logo](connection.jpg)
+## diagram
+![connections](connections.jpg)
 
-## software
-- file upml_robotics.ino - is main file with code for arduino;
-- file sensors_pos_maker.py - is script for generating sensors_pos.h lookup table;
-- ports.txt - is table with all ports for Arduino Mega 2560;
-- libio.h library for controling motors.
 
+## dependences
+- It is compiled using arduino IDE with flag -O3 to enable optimization.
+- Python 3 is required for generation of lookup table for sensors.
+
+## files
+- upml_robotics.ino - is the main file with code for arduino;
+- sensors_pos_maker.py - is a script for generating sensors_pos.h lookup table;
+- ports.txt - is a table with all ports for Arduino Mega 2560;
+- libio.h - is a library for controling motors.
