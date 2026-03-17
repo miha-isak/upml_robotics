@@ -2,10 +2,10 @@
 #include "libio.h"
 
 // --- Constants ---
-const short base_speed = 200;
-const long kp = 45;
-const long kd = 500;
-const long kd_max=80;
+const short base_speed = 230;
+const long kp = 70;
+const long kd = 800;
+const long kd_max=180;
 const long kp_max=255;
 
 // Time Constants (T) in microseconds
@@ -41,8 +41,8 @@ inline uint16_t get_sensors() {
   return (sensors_l << 3) | ((sensors_h >> 5) & 0x7);
 }
 
-bool get_ready_left(uint16_t sensors)  { return __builtin_popcount(sensors & 0b00000111111) > 3; }
-bool get_ready_right(uint16_t sensors) { return __builtin_popcount(sensors & 0b11111100000) > 3; }
+bool get_ready_left(uint16_t sensors)  { return __builtin_popcount(sensors & 0b00000111111) >= 3; }
+bool get_ready_right(uint16_t sensors) { return __builtin_popcount(sensors & 0b11111100000) >= 3; }
 
 void setup() {
   Serial.begin(115200);
@@ -59,8 +59,11 @@ void set_right_speed(long speed){
   target_speed_right=speed;
 }
 void update_motors(long dt){
-  smooth(cur_speed_right,target_speed_right,30000,dt);
-  smooth(cur_speed_left,target_speed_left,30000,dt);
+  smooth(cur_speed_right,target_speed_right,1 5000,dt);
+  smooth(cur_speed_left,target_speed_left,15000,dt);
+  
+  // smooth(cur_speed_right,target_speed_right,0,dt);
+  // smooth(cur_speed_left,target_speed_left,0,dt);
   motors::move_right(cur_speed_right);
   motors::move_left (cur_speed_left);
 }
@@ -90,7 +93,14 @@ void loop() {
   unsigned long new_frame_time = micros();
   unsigned long d_t = new_frame_time - old_frame_time;
   old_frame_time = new_frame_time;
-  update_motors(d_t);
+  if(new_frame_time<=500000){
+    smooth(cur_speed_right,target_speed_right,35000,d_t);
+    smooth(cur_speed_left,target_speed_left,35000,d_t);
+    motors::move_right(cur_speed_right);
+    motors::move_left (cur_speed_left);
+  }else{
+    update_motors(d_t);
+  }
   static long cnt=0;
   static long cntt=0;
   if (d_t == 0) return;
@@ -112,16 +122,16 @@ void loop() {
       ignore_90 = new_frame_time + 500000; // 0.6s ignore
       ready_for90_r = ready_for90_l = 0;
       mask = 0;
-      if (new_frame_time>30000000L) {
+      if (new_frame_time>20000000L) {
         mstop();
       }
     }
     
-    if (ready_for90_l && (new_frame_time - ready_for90_l_time > 300000)) {
+    if (ready_for90_l && (new_frame_time - ready_for90_l_time > 150000)) {
       ready_for90_r = ready_for90_l = 0; mask = 0;
       move(-200,200,new_frame_time+time90);
       return;
-    } else if (ready_for90_r && (new_frame_time - ready_for90_r_time > 300000)) {
+    } else if (ready_for90_r && (new_frame_time - ready_for90_r_time > 150000)) {
       ready_for90_r = ready_for90_l = 0; mask = 0;
       move(200,-200,new_frame_time+time90);
       return;
@@ -134,8 +144,8 @@ void loop() {
     float search_factor = 0.4f + min(dt_lost, 0.6f);
     long turn = (last_good_line * kp) * search_factor;
 
-    set_left_speed(constrain(base_speed + turn, -60, 200));
-    set_right_speed(constrain(base_speed - turn, -60, 200));
+    set_left_speed(constrain(base_speed + turn, -100, 230));
+    set_right_speed(constrain(base_speed - turn, -100, 230));
     smooth(ddt, 0.0f, T_DDT, d_t);
   }
   else{
@@ -166,12 +176,13 @@ void loop() {
     long delta = constrain(line_pos * kp,-kp_max,kp_max) + constrain(ddta * kd, -kd_max, kd_max);
     
     // Dynamic Speed
-    float speed_drop = constrain(1.0f - (abs(line_pos) / 50.0f), 0.3f, 1.0f);
+    float speed_drop = constrain(1.0f - (abs(line_pos) / 50.0f), 0.2f, 1.0f);
     long current_base = base_speed * speed_drop;
 
-    set_left_speed(constrain(current_base + delta, -60, 200));
-    set_right_speed(constrain(current_base - delta, -60, 200));
+    set_left_speed(constrain(current_base + delta, -100, 230));
+    set_right_speed(constrain(current_base - delta, -100, 230));
   }
 
   smooth(ddta, ddt, T_DDTA, d_t);
 }
+
