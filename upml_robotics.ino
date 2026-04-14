@@ -2,7 +2,7 @@
 #include "libio.h"
 
 // --- Constants ---
-const short base_speed = 235;
+const short base_speed = 230;
 const long kp = 70;
 const long kd = 800;
 const long kd_max=180;
@@ -45,7 +45,7 @@ bool get_ready_left(uint16_t sensors)  { return __builtin_popcount(sensors & 0b0
 bool get_ready_right(uint16_t sensors) { return __builtin_popcount(sensors & 0b11111100000) >= 3; }
 
 void setup() {
-  Serial.begin(115200);
+  // Serial.begin(115200);
   motors::setup();
 }
 float cur_speed_left=0;
@@ -59,8 +59,8 @@ void set_right_speed(long speed){
   target_speed_right=speed;
 }
 void update_motors(long dt){
-  smooth(cur_speed_right,target_speed_right,17000,dt);
-  smooth(cur_speed_left,target_speed_left,17000,dt);
+  smooth(cur_speed_right,target_speed_right,19000,dt);
+  smooth(cur_speed_left,target_speed_left,19000,dt);
   
   // smooth(cur_speed_right,target_speed_right,0,dt);
   // smooth(cur_speed_left,target_speed_left,0,dt);
@@ -162,8 +162,8 @@ void loop() {
     float search_factor = 0.4f + min(dt_lost, 0.6f);
     long turn = (last_good_line * kp) * search_factor;
 
-    set_left_speed(constrain(base_speed + turn, -100, 235));
-    set_right_speed(constrain(base_speed - turn, -100, 235));
+    set_left_speed(constrain(base_speed + turn, -100, 230));
+    set_right_speed(constrain(base_speed - turn, -100, 230));
     smooth(ddt, 0.0f, T_DDT, d_t);
   }
   else{
@@ -197,8 +197,8 @@ void loop() {
     float speed_drop = constrain(1.0f - (abs(line_pos) / 50.0f), 0.2f, 1.0f);
     long current_base = base_speed * speed_drop;
 
-    set_left_speed(constrain(current_base + delta, -100, 235));
-    set_right_speed(constrain(current_base - delta, -100, 235));
+    set_left_speed(constrain(current_base + delta, -100, 230));
+    set_right_speed(constrain(current_base - delta, -100, 230));
   }
 
   smooth(ddta, ddt, T_DDTA, d_t);
